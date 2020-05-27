@@ -35,7 +35,29 @@ def compute_P_with_S(S,cluster_num,learn_rate=0.5,mult_rate=0.9):
     return P_ini
 
 
+
+def compute_P_with_Z(Z,cluster_num,learn_rate=0.5,mult_rate=0.9):
+    [n,k]=np.shape(Z)
+
+
+    P_ini = 0.001*(np.random.randint(0,1000,(cluster_num,n)))
+
+    for i in range(1,100):
+        #PTP=P_ini.T.dot(P_ini)
+        upper_part=(P_ini.dot(Z)).dot(Z.T)+2*P_ini
+        lower_part=(upper_part.dot(P_ini.T)).dot(P_ini)
+
+
+        eps = np.finfo(lower_part.dtype).eps
+        updata_indicator=(upper_part)/(lower_part+eps)
+        P_ini=np.multiply(P_ini,np.power(((1-learn_rate)+learn_rate*updata_indicator),mult_rate))
+
+    return P_ini
+
+
 if __name__ == '__main__':
+    #test高复杂度
+    '''
     data=scio.loadmat("dataset/mnist_1000.mat")
     x=data['mnist_1000']
     y=data['label']
@@ -47,3 +69,8 @@ if __name__ == '__main__':
     print(PI)
     print(y[0])
     print (metrics.normalized_mutual_info_score(PI,y[0]))
+    '''
+    Z = np.random.uniform(0, 0.001, size=(1000000, 100))
+    P=compute_P_with_Z(Z, 10, learn_rate=0.5, mult_rate=0.9)
+    PI = (np.argmax(P, axis=0))
+    print(PI.shape)
